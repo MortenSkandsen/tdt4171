@@ -12,7 +12,7 @@ observations_true = np.array([[0.9, 0], [0, 0.2]], dtype=np.float)
 observations_false = np.array([[0.1, 0], [0, 0.8]], dtype=np.float)
 # Previous observations (e_t), this will be a list of bools
 # True for item i if it rained on day i
-observations = [None, True, True, False, True, True]
+observations = [True, True, False, True, True]
 
 def normalize(vector):
     return np.array(vector/sum(vector))
@@ -25,7 +25,7 @@ def predict(prob_vect):
 def update(prediction, day):
     # In: prediction vector
     # Updates the vector by calculating P(e_t+1| x_t+1)
-    saw_umbrella = observations[day]
+    saw_umbrella = observations[day-1]
     obs_matrix = observations_false
     if saw_umbrella:
         obs_matrix = observations_true
@@ -52,20 +52,27 @@ def backward(cur_vec, day):
 
 def forward_backward():
     # Smoothing returns the backwards probability of P(X_k | e_{1:t})
-    t = len(observations)
+    t = len(observations)+1
     forward_vec = [None]*t
     smoothed_vec = [None]*t
     # Initial values for forward and backwards messages
     forward_vec[0] = [0.5, 0.5]
     back_msg = np.array([1,1])
     # Loop over all timeslots, first forwards, then backwards
+    print(back_msg)
     for i in range(1,t):
         forward_vec[i] = forward(forward_vec[i-1], i)
-        print(forward_vec[i])
-    for i in range(t-1,0,-1):
+    for i in range(t-1,-1,-1):
         smoothed_vec[i] = normalize(np.multiply(forward_vec[i], back_msg))
         back_msg = backward(back_msg, i)
+        print(back_msg)
+    pretty_print("Forward msg", forward_vec)
+    pretty_print("Result:", smoothed_vec)
     return smoothed_vec
 
+
+def pretty_print(name, array):
+    for i,k in enumerate(array):
+        print("%s %s: %s" % (name, i, k))
 
 forward_backward()
