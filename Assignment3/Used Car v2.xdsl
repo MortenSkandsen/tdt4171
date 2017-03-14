@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<smile version="1.0" id="Network1" numsamples="1000" discsamples="10000">
+	<nodes>
+		<deterministic id="Mileage">
+			<state id="Short" />
+			<state id="Medium" />
+			<state id="Far" />
+			<resultingstates>Medium</resultingstates>
+		</deterministic>
+		<deterministic id="Cosmetics">
+			<state id="Good" />
+			<state id="Decent" />
+			<state id="Bad" />
+			<resultingstates>Decent</resultingstates>
+		</deterministic>
+		<cpt id="Been_In_Collision">
+			<state id="True" />
+			<state id="False" />
+			<parents>Mileage Cosmetics</parents>
+			<probabilities>0.025 0.975 0.1 0.9 0.3 0.7 0.05 0.95 0.15 0.85 0.5 0.5 0.1 0.9 0.25 0.75 0.7 0.3</probabilities>
+		</cpt>
+		<deterministic id="Car_Brand">
+			<state id="Volkswagen" />
+			<state id="Seat" />
+			<state id="Mercedes" />
+			<resultingstates>Mercedes</resultingstates>
+		</deterministic>
+		<deterministic id="Car_Age">
+			<state id="New" />
+			<state id="Medium" />
+			<state id="Old" />
+			<resultingstates>Old</resultingstates>
+		</deterministic>
+		<cpt id="Functional_Defects">
+			<state id="None" />
+			<state id="Few" />
+			<state id="Many" />
+			<parents>Been_In_Collision Car_Brand Car_Age</parents>
+			<probabilities>0.2 0.6 0.2 0.15 0.5 0.35 0.1 0.45 0.45 0.15 0.5 0.35 0.1 0.45 0.45 0.05 0.35 0.6 0.5 0.35 0.15 0.4 0.35 0.25 0.25 0.4 0.35 0.6 0.3 0.1 0.5 0.4 0.1 0.3 0.5 0.2 0.3 0.6000000000000001 0.1 0.2 0.6000000000000001 0.2 0.1 0.5 0.4 0.75 0.2 0.05 0.6 0.3 0.1 0.4 0.4 0.2</probabilities>
+		</cpt>
+		<cpt id="Structural_Defects">
+			<state id="None" />
+			<state id="Few" />
+			<state id="Many" />
+			<parents>Been_In_Collision Car_Brand Car_Age</parents>
+			<probabilities>0.2 0.6 0.2 0.15 0.5 0.35 0.1 0.45 0.45 0.15 0.5 0.35 0.1 0.45 0.45 0.05 0.35 0.6 0.5 0.35 0.15 0.4 0.35 0.25 0.25 0.4 0.35 0.6 0.3 0.1 0.5 0.4 0.1 0.3 0.5 0.2 0.3 0.6000000000000001 0.1 0.2 0.6000000000000001 0.2 0.1 0.5 0.4 0.75 0.2 0.05 0.6 0.3 0.1 0.4 0.4 0.2</probabilities>
+		</cpt>
+		<deterministic id="Seller_Impression">
+			<state id="Bad" />
+			<state id="Neutral" />
+			<state id="Good" />
+			<resultingstates>Neutral</resultingstates>
+		</deterministic>
+		<cpt id="Encumbrance">
+			<state id="False" />
+			<state id="True" />
+			<parents>Seller_Impression</parents>
+			<probabilities>0.2 0.8 0.8 0.2 0.95 0.05</probabilities>
+		</cpt>
+		<cpt id="Stolen">
+			<state id="False" />
+			<state id="True" />
+			<parents>Seller_Impression</parents>
+			<probabilities>0.5 0.5 0.8 0.2 0.99 0.01</probabilities>
+		</cpt>
+		<cpt id="Previous_Owners">
+			<state id="Few" />
+			<state id="Many" />
+			<parents>Car_Age</parents>
+			<probabilities>0.99 0.01 0.5 0.5 0.1 0.9</probabilities>
+		</cpt>
+		<deterministic id="Price">
+			<state id="Cheap" />
+			<state id="Medium" />
+			<state id="Expensive" />
+			<resultingstates>Medium</resultingstates>
+		</deterministic>
+		<decision id="Decision">
+			<state id="Buy" />
+			<state id="No_Buy" />
+		</decision>
+		<utility id="Functonal_Defects">
+			<parents>Functional_Defects</parents>
+			<utilities>45 -5 -55</utilities>
+		</utility>
+		<utility id="Encumbrance_2">
+			<parents>Encumbrance</parents>
+			<utilities>0 -10</utilities>
+		</utility>
+		<utility id="Stolen_2">
+			<parents>Stolen</parents>
+			<utilities>0 -100</utilities>
+		</utility>
+		<utility id="Previous_Owners_2">
+			<parents>Previous_Owners</parents>
+			<utilities>20 -5</utilities>
+		</utility>
+		<utility id="Structural_Defects_2">
+			<parents>Structural_Defects</parents>
+			<utilities>35 -5 -45</utilities>
+		</utility>
+		<utility id="Price_2">
+			<parents>Price</parents>
+			<utilities>50 15 -30</utilities>
+		</utility>
+		<mau id="Sum">
+			<parents>Encumbrance_2 Stolen_2 Previous_Owners_2 Functonal_Defects Decision Structural_Defects_2 Price_2</parents>
+			<weights>1 1 1 1 1 1 0 0 0 0 0 0</weights>
+		</mau>
+	</nodes>
+	<extensions>
+		<genie version="1.0" app="GeNIe 2.0.5590.0" name="Network1" faultnameformat="nodestate">
+			<node id="Functional_Defects">
+				<name>Functional Defects</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>247 543 348 606</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Structural_Defects">
+				<name>Structural Defects</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>369 645 470 708</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Been_In_Collision">
+				<name>Been In Collision</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>292 404 393 467</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="Encumbrance">
+				<name>Encumbrance</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>290 82 391 145</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="Stolen">
+				<name>Stolen</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>289 183 390 246</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="Previous_Owners">
+				<name>Previous Owners</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>292 297 393 360</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="Seller_Impression">
+				<name>Seller Impression</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>68 131 168 196</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Mileage">
+				<name>Mileage</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>57 381 157 446</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Cosmetics">
+				<name>Cosmetics</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>63 471 163 536</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Car_Age">
+				<name>Car Age</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>65 275 165 340</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Price">
+				<name>Price</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>68 726 168 791</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Decision">
+				<name>Decision</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>714 350 767 376</position>
+			</node>
+			<node id="Car_Brand">
+				<name>Car Brand</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>88 601 157 646</position>
+				<barchart active="true" width="128" height="72" />
+			</node>
+			<node id="Encumbrance_2">
+				<name>Encumbrance</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>467 108 553 140</position>
+			</node>
+			<node id="Stolen_2">
+				<name>Stolen</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>475 207 525 239</position>
+			</node>
+			<node id="Sum">
+				<name>Sum</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>620 343 677 375</position>
+			</node>
+			<node id="Previous_Owners_2">
+				<name>Previous Owners</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>457 323 562 355</position>
+			</node>
+			<node id="Functonal_Defects">
+				<name>Functonal Defects</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" italic="true" />
+				<position>438 487 548 519</position>
+			</node>
+			<node id="Structural_Defects_2">
+				<name>Structural Defects</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>492 556 600 588</position>
+			</node>
+			<node id="Price_2">
+				<name>Price</name>
+				<interior color="e5f6f7" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>581 714 625 746</position>
+			</node>
+		</genie>
+	</extensions>
+</smile>
