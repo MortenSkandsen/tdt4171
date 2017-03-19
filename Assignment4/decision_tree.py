@@ -1,6 +1,8 @@
 
 from random import randint
 from math import log
+from classes import Node, Example
+
 
 def decision_tree_learning(examples, attributes, parent_examples):
     # if examples is empty, return plurality_value(parent_examples)
@@ -21,17 +23,20 @@ def decision_tree_learning(examples, attributes, parent_examples):
     
     else:
         # choose best attribute to split on
-        best_attribute = argmax(expected_information_gain, attributes, examples)
-        print("Attributes:", attributes)
+        #best_attribute = argmax(expected_information_gain, attributes, examples)
+        best_attribute = random_importance(attributes)
         attributes.remove(best_attribute)
-        print("Best attribute: ", best_attribute)
+        #print("Best attribute: ", best_attribute)
         root_node = create_tree(best_attribute)
+        print("Splitting attribute ", best_attribute)
         for value in [True, False]:
             # Create a subtree for each of the values of the attribute
-            exs = [ex for ex in examples if ex.get_attr(best_attribute)==value]
+            exs = [ex for ex in examples if ex.get_attr(best_attribute) == value]
             subtree = decision_tree_learning(exs, attributes, examples)
-            root_node.add_subtree(subtree)
+            root_node.add_subtree(value, subtree)
     return root_node
+
+
 
 def random_importance(attributes):
     # Returns a random attribute from in param that is to split the trees
@@ -48,8 +53,6 @@ def argmax(function, *args):
     return max(attribute_dict, key= lambda k: attribute_dict[k])
 
 def expected_information_gain(attribute, examples, *args):
-    print("Attribute: ", attribute)
-    print("Examples: ", examples)
     # This is one of the candidates for the importance function
     # The information gain is defined as the reduction in entropy, 
     # that is Gain(A) = B(p/(p+n)) - Remainder(A)
@@ -69,8 +72,30 @@ def remainder(attribute, examples):
     remainder = 0
     for subset in [truthy, falsy]:
         remainder += len(subset)/len(examples) * goal_entropy(subset)
-    return remainder
-    
+    return remainder 
+
+
+def goal_entropy(examples):
+    """
+    Takes in a list of examples
+    The goal entropy is defined as the entropy of
+    B(p/(p+n)), where p is the positive examples and n the negatives
+    """
+    if not examples:
+        return 0
+    # Here we are using the trick that summing over booleans gives 1's for True and 0 for False
+    num_positives = sum([example.classification for example in examples])
+    # Note: If you are running python 2.x, use float(num_positives) in the fraction below
+    pos_ratio = num_positives/len(examples)
+    return boolean_entropy(pos_ratio)
+
+def boolean_entropy(prob):
+    # If we recieve probability that are 1 or 0, the entropy is 0
+    if prob in [0, 1]:
+        return 0
+    # The boolean entropy of the variable p is defined as 
+    # B(p) = -(plog(p) + (1-p)log(1-p))
+    return -(prob*log(prob, 2) + (1-prob)*log(1-prob, 2))
 
 
 def has_same_classification(examples):
@@ -97,86 +122,71 @@ def create_test_examples():
 
 def create_example_classes(lines):
     # Iterate over all examples, create class instances
+    examples = []
     for line in lines:
         # Since all our lines are 1 or 2's, we will use booleans to represent them (1 is True, 2 is False)
         line = [x=="1" for x in line if x.isdigit()]
         examples.append(Example(line))
     return examples
 
-class Example:
-    attributes = []
-    classification = None
-    def __init__(self, values):
-        # In: A list of values
-        # All but the last value are values of attributes
-        # The last value is by definition the classification of the given Example
-        if(len(values) != 8): raise ValueError("Incorrect format of value list!")
-        self.attributes = values[:7]
-        self.classification = values[-1]
 
-    def get_attr(self, index):
-        # Returns attribute value with the given index
-        return self.attributes[index]
-
-    def __repr__(self):
-        return "Example: %s" % str(self.classification)
-
-class Node:
-    def __init__(self, children, attribute):
-        # Children is a list of Nodes
-        self.children = children
-        # Attribute is what attribute the node represents
-        self.attribute = attribute
-        # What value of attribute was chosen to get to this node?
-        #self.branch_value = branch_value
-    
-    def add_subtree(self, subtree):
-        self.children.append(subtree)
-    
-    def __repr__(self):
-        return "Node: {}".format(self.attribute)
 
 def create_tree(attribute):
     print("Created node with attribute ", attribute)
-    return Node([], attribute)
+    return Node(attribute)
 
 
-def goal_entropy(examples):
-    """
-    Takes in a list of examples
-    The goal entropy is defined as the entropy of
-    B(p/(p+n)), where p is the positive examples and n the negatives
-    """
-    
-    # Here we are using the trick that summing over booleans gives 1's for True and 0 for False
-    num_positives = sum([example.classification for example in examples])
-    # Note: If you are running python 2.x, use float(num_positives) in the fraction below
-    pos_ratio = num_positives/len(examples)
-    return boolean_entropy(pos_ratio)
-
-def boolean_entropy(prob):
-    print("Probability: ", prob)
-    # If we recieve sets that are 
-    if prob in [0, 1]:
-        return 0
-    # The boolean entropy of the variable p is defined as 
-    # B(p) = -(plog(p) + (1-p)log(1-p))
-    return -(prob*log(prob, 2) + (1-prob)*log(1-prob, 2))
-
-def print_tree(tree):
-    print(tree)
+def print_tree(tree, count):
+    print('\t'*count+"Node: ", tree)
     children = tree.children
-    print(children)
-    for node in children:
-        if type(node) == Node and node.children:
-            print_tree(node)
+    print('\t'*count+"Children: ", children)
+    for key in children.keys():
+        node = children[key]
+        
+        if isinstance(node, Node) and node.has_children():
+            print_tree(node, count+1)
 
 
-examples = create_train_examples()
+def decide(example, tree):
+    """
+    In: An instance of an example
+        A decision tree 
+    Out: The decision based on result of decision tree 
+    """
+    # Find out what attribute we are deciding on
+    attribute = tree.attribute
 
-print("There are %s examples" % len(examples))
-attributes = list(range(len(examples[0].attributes)))
-print("Number of attributes: ", len(attributes))
+    value = example.get_attr(attribute)
+    next_node = tree.get_child(value)
+    # Reached a leaf node
+    if next_node in [True, False]:
+        return next_node
+    return decide(example, next_node)
 
-tree = decision_tree_learning(examples, attributes , None)
-print_tree(tree)
+
+
+def validate_test_examples():
+    train_examples = create_train_examples()
+
+    print("There are %s train examples" % len(train_examples))
+    attributes = list(range(7))
+    results = []
+
+    test_examples = create_test_examples()
+    print("There are %s test examples" % len(test_examples))
+    decisions = []
+    tree = decision_tree_learning(train_examples, attributes, None)
+    print_tree(tree, 0)
+    for ex in test_examples:
+        decision = decide(ex, tree)
+        decisions.append(decision == ex.classification)
+    print_accuracy_stats(decisions)
+    
+
+def print_accuracy_stats(decisions):
+    print("CORRECT DECISIONS:", sum(decisions))
+    print("WRONG DECISIONS:", len(decisions)-sum(decisions))
+    print("ACCURACY: ", 100*sum(decisions)/ len(decisions), "%")
+
+validate_test_examples()
+
