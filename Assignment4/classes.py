@@ -16,7 +16,9 @@ class Example:
 
     def __repr__(self):
         return "Example with class.: %s" % str(self.classification)
-
+    
+    def __eq__(self, other):
+        return all(self.attributes[i] == other.attributes[i] for i in range(len(self.attributes)))
 class Node:
     def __init__(self, attribute):
         # Children is a dictionary of Nodes where key is the chosen attribute, and value is the next node

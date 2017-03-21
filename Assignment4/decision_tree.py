@@ -19,6 +19,9 @@ def decision_tree_learning(examples, attributes, parent_examples):
     # this occurs if there is noise in the examples 
     elif not attributes: 
         print("Attributes is emtpy, examples are noisy!")
+        print("Attributes: ", attributes)
+        print("Examples:",examples)
+        print("Parent examples: ", parent_examples)
         return plurality_value(examples)
     
     else:
@@ -132,7 +135,6 @@ def create_example_classes(lines):
 
 
 def create_tree(attribute):
-    print("Created node with attribute ", attribute)
     return Node(attribute)
 
 
@@ -167,7 +169,7 @@ def decide(example, tree):
 
 def validate_test_examples():
     train_examples = create_train_examples()
-
+    has_noisy_data(train_examples)
     print("There are %s train examples" % len(train_examples))
     attributes = list(range(7))
     results = []
@@ -182,7 +184,36 @@ def validate_test_examples():
         decisions.append(decision == ex.classification)
     print_accuracy_stats(decisions)
     
+    #test_tree(tree)
+"""
+def test_tree(tree):
+    
+    #Note, this method should only used for testing the tree when the function to select attribute is Expected Information Gain
+    
+    # Every example that has attriute 0 and 4 False is False
+    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
+    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
+    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
+    # Every example with attribute 0 True is True
+    assert decide(Example([True, True, True, True, False, True, True, True]), tree) == True
+    assert decide(Example([True, False, True, True, False, True, True, True]), tree) == True
+    assert decide(Example([True, True, False, True, False, True, True, True]), tree) == True
+    assert decide(Example([True, True, True, True, True, True, True, True]), tree) == True
+    
+"""
 
+def has_noisy_data(examples):
+    # Returns true if some examples have the same attributes but different classification
+
+    equals = []
+    for i in range(len(examples)):
+        for j in range(len(examples)):
+            if i == j: continue
+            else:
+                x = examples[i]
+                y = examples[j]
+                if x == y:# and examples[i].classification != examples[j].classification:
+                    print("NOISY DATA: %s == %s but class.1: %s != class.2 %s"% (examples[i].attributes, examples[j].attributes, examples[i].classification, examples[j].classification))
 def print_accuracy_stats(decisions):
     print("CORRECT DECISIONS:", sum(decisions))
     print("WRONG DECISIONS:", len(decisions)-sum(decisions))
