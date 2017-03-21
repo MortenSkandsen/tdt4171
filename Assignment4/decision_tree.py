@@ -5,12 +5,12 @@ from classes import Node, Example
 
 
 def decision_tree_learning(examples, attributes, parent_examples):
-    # if examples is empty, return plurality_value(parent_examples)
+    
     if not examples: 
         print("No examples left")
         return plurality_value(parent_examples)
    
-    # else if all examples have same classification, return classification (since all have same, return the class. of the first)
+    # (since all have same, return the class. of the first)
     elif has_same_classification(examples): 
         print("All examples have same classification! Number of examples: %s" % len(examples))
         return examples[0].classification
@@ -19,23 +19,20 @@ def decision_tree_learning(examples, attributes, parent_examples):
     # this occurs if there is noise in the examples 
     elif not attributes: 
         print("Attributes is emtpy, examples are noisy!")
-        print("Attributes: ", attributes)
-        print("Examples:",examples)
-        print("Parent examples: ", parent_examples)
         return plurality_value(examples)
     
     else:
         # choose best attribute to split on
         #best_attribute = argmax(expected_information_gain, attributes, examples)
         best_attribute = random_importance(attributes)
-        attributes.remove(best_attribute)
+        
         #print("Best attribute: ", best_attribute)
         root_node = create_tree(best_attribute)
         print("Splitting attribute ", best_attribute)
         for value in [True, False]:
             # Create a subtree for each of the values of the attribute
             exs = [ex for ex in examples if ex.get_attr(best_attribute) == value]
-            subtree = decision_tree_learning(exs, attributes, examples)
+            subtree = decision_tree_learning(exs, list(attributes), examples)
             root_node.add_subtree(value, subtree)
     return root_node
 
@@ -144,7 +141,6 @@ def print_tree(tree, count):
     print('\t'*count+"Children: ", children)
     for key in children.keys():
         node = children[key]
-        
         if isinstance(node, Node) and node.has_children():
             print_tree(node, count+1)
 
@@ -169,7 +165,6 @@ def decide(example, tree):
 
 def validate_test_examples():
     train_examples = create_train_examples()
-    has_noisy_data(train_examples)
     print("There are %s train examples" % len(train_examples))
     attributes = list(range(7))
     results = []
@@ -183,8 +178,7 @@ def validate_test_examples():
         decision = decide(ex, tree)
         decisions.append(decision == ex.classification)
     print_accuracy_stats(decisions)
-    
-    #test_tree(tree)
+
 """
 def test_tree(tree):
     
@@ -202,18 +196,6 @@ def test_tree(tree):
     
 """
 
-def has_noisy_data(examples):
-    # Returns true if some examples have the same attributes but different classification
-
-    equals = []
-    for i in range(len(examples)):
-        for j in range(len(examples)):
-            if i == j: continue
-            else:
-                x = examples[i]
-                y = examples[j]
-                if x == y:# and examples[i].classification != examples[j].classification:
-                    print("NOISY DATA: %s == %s but class.1: %s != class.2 %s"% (examples[i].attributes, examples[j].attributes, examples[i].classification, examples[j].classification))
 def print_accuracy_stats(decisions):
     print("CORRECT DECISIONS:", sum(decisions))
     print("WRONG DECISIONS:", len(decisions)-sum(decisions))
