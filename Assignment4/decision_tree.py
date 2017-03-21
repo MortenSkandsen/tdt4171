@@ -1,3 +1,9 @@
+"""
+Usage: python decision_tree.py <bool>
+whether or not to use random importance to choosing attributes. This will generally lead to bigger trees 
+with lower accuracy. 
+"""
+
 import sys
 from random import randint
 from math import log
@@ -16,7 +22,7 @@ def decision_tree_learning(examples, attributes, parent_examples, use_random_imp
         return examples[0].classification
 
     # else if attributes is empty, return plurality_value(examples)
-    # this occurs if there is noise in the examples 
+    # this occurs if there is noise in the examples (same attributes, different classification)
     elif not attributes: 
         print("Attributes is emtpy, examples are noisy!")
         return plurality_value(examples)
@@ -29,7 +35,6 @@ def decision_tree_learning(examples, attributes, parent_examples, use_random_imp
             best_attribute = argmax(expected_information_gain, attributes, examples)
 
         root_node = create_tree(best_attribute)
-        print("Splitting attribute ", best_attribute)
         for value in [True, False]:
             # Create a subtree for each of the values of the attribute
             exs = [ex for ex in examples if ex.get_attr(best_attribute) == value]
@@ -182,36 +187,20 @@ def decide(example, tree):
 
 def validate_test_examples(use_random_importance):
     train_examples = create_train_examples()
-    print("There are %s train examples" % len(train_examples))
+    test_examples = create_test_examples()
     attributes = list(range(7))
     results = []
-
-    test_examples = create_test_examples()
-    print("There are %s test examples" % len(test_examples))
     decisions = []
     tree = decision_tree_learning(train_examples, attributes, None, use_random_importance = use_random_importance)
     print_tree(tree, 0)
     for ex in test_examples:
         decision = decide(ex, tree)
         decisions.append(decision == ex.classification)
+    
+    print("There are %s train examples" % len(train_examples))
+    print("There are %s test examples" % len(test_examples))
     print_accuracy_stats(decisions)
 
-"""
-def test_tree(tree):
-    
-    #Note, this method should only used for testing the tree when the function to select attribute is Expected Information Gain
-    
-    # Every example that has attriute 0 and 4 False is False
-    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
-    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
-    assert decide(Example([False, True, True, True, False, True, True, True]), tree) == False
-    # Every example with attribute 0 True is True
-    assert decide(Example([True, True, True, True, False, True, True, True]), tree) == True
-    assert decide(Example([True, False, True, True, False, True, True, True]), tree) == True
-    assert decide(Example([True, True, False, True, False, True, True, True]), tree) == True
-    assert decide(Example([True, True, True, True, True, True, True, True]), tree) == True
-    
-"""
 
 def print_accuracy_stats(decisions):
     print("CORRECT DECISIONS:", sum(decisions))
@@ -223,7 +212,6 @@ def main(argv):
     use_random_importance = True
     if argv:
         use_random_importance = (argv[0]=='True')
-    
     validate_test_examples(use_random_importance = use_random_importance)
 
 if __name__ == "__main__": main(sys.argv[1:])
