@@ -1,10 +1,10 @@
-
+import sys
 from random import randint
 from math import log
 from classes import Node, Example
 
 
-def decision_tree_learning(examples, attributes, parent_examples):
+def decision_tree_learning(examples, attributes, parent_examples, use_random_importance):
     
     if not examples: 
         print("No examples left")
@@ -23,16 +23,17 @@ def decision_tree_learning(examples, attributes, parent_examples):
     
     else:
         # choose best attribute to split on
-        #best_attribute = argmax(expected_information_gain, attributes, examples)
-        best_attribute = random_importance(attributes)
-        
-        #print("Best attribute: ", best_attribute)
+        if use_random_importance:
+            best_attribute = random_importance(attributes)
+        else:
+            best_attribute = argmax(expected_information_gain, attributes, examples)
+
         root_node = create_tree(best_attribute)
         print("Splitting attribute ", best_attribute)
         for value in [True, False]:
             # Create a subtree for each of the values of the attribute
             exs = [ex for ex in examples if ex.get_attr(best_attribute) == value]
-            subtree = decision_tree_learning(exs, list(attributes), examples)
+            subtree = decision_tree_learning(exs, list(attributes), examples, use_random_importance)
             root_node.add_subtree(value, subtree)
     return root_node
 
@@ -134,11 +135,27 @@ def create_example_classes(lines):
 def create_tree(attribute):
     return Node(attribute)
 
+def dict_print(dictionary):
+    # Since our tree is so large, we need to minimize the representation of children dictionary
+    # Note: this method was added reaallly late and is shitty coding. There are so many ways to do this better, but i wont bother.
+    string =  ''
+    bool_conv = lambda  x: str(x)[0]
+    first = True
+    for k in dictionary.keys():
+        if isinstance(dictionary[k], Node):
+            string += bool_conv(k)+":"+str(dictionary[k])
+        else:
+            string += bool_conv(k)+":"+str(dictionary[k])[0]
+        if first:
+            string += ","
+            first = False
+    
+    return '{%s}' % string
 
 def print_tree(tree, count):
-    print('\t'*count+"Node: ", tree)
+    print('-'*count, tree)
     children = tree.children
-    print('\t'*count+"Children: ", children)
+    print('-'*count, dict_print(children))
     for key in children.keys():
         node = children[key]
         if isinstance(node, Node) and node.has_children():
@@ -163,7 +180,7 @@ def decide(example, tree):
 
 
 
-def validate_test_examples():
+def validate_test_examples(use_random_importance):
     train_examples = create_train_examples()
     print("There are %s train examples" % len(train_examples))
     attributes = list(range(7))
@@ -172,7 +189,7 @@ def validate_test_examples():
     test_examples = create_test_examples()
     print("There are %s test examples" % len(test_examples))
     decisions = []
-    tree = decision_tree_learning(train_examples, attributes, None)
+    tree = decision_tree_learning(train_examples, attributes, None, use_random_importance = use_random_importance)
     print_tree(tree, 0)
     for ex in test_examples:
         decision = decide(ex, tree)
@@ -201,5 +218,12 @@ def print_accuracy_stats(decisions):
     print("WRONG DECISIONS:", len(decisions)-sum(decisions))
     print("ACCURACY: ", 100*sum(decisions)/ len(decisions), "%")
 
-validate_test_examples()
 
+def main(argv):
+    use_random_importance = True
+    if argv:
+        use_random_importance = (argv[0]=='True')
+    
+    validate_test_examples(use_random_importance = use_random_importance)
+
+if __name__ == "__main__": main(sys.argv[1:])
