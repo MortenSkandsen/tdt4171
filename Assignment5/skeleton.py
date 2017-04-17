@@ -72,31 +72,84 @@ def train_and_plot(xtrain,ytrain,xtest,ytest,training_method,learn_rate=0.1,nite
     return w
 
 def task_1_plot():
-    w1 = np.arange(-6, 7, step=0.1)
-    w2 = np.arange(-6, 7, step=0.1)
+    w1 = np.arange(-6, 6, step=0.1)
+    w2 = np.arange(-6, 6, step=0.1)
     X, Y = np.meshgrid(w1, w2)
     
-    loss_func = lambda w: ((logistic_wx(w, [1,0])-1)**2 + logistic_wx(w, [1,0])**2 + (logistic_wx(w, [1,1]) - 1)**2)**2
     Z = []
     minimum = 100
     for i in range(len(X)):
         Z.append([])
         for j in range(len(Y)):
-            val = loss_func([X[i,j], Y[i,j]])
+            val = simple_loss_func([X[i,j], Y[i,j]])
             if val < minimum:
                 minimum = val
                 print("min:", minimum)
-                print("weighs:", X[i,j], Y[i,j])
+                print("weigths:", X[i,j], Y[i,j])
             Z[i].append(val)
+    plot_surface(X, Y, Z, heatmap=True)
     
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')   
-    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, antialiased=False, linewidth = 0)
-    fig.colorbar(surf, shrink=0.5, aspect=5)
+    # From the graph, we observe that the minimum of the function is about 0.005, which is for the weights
+    # 5.9 and -2.9, but there is a whole area that is low, so all weights in that region is good.
+    
+def plot_surface(X, Y, Z, heatmap=False):
+    if heatmap:
+        plt.pcolormesh(X, Y, Z)
+        plt.colorbar()
+        plt.show()
+    else:
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')   
+        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, antialiased=False, linewidth = 0)
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.show()
+
+def simple_loss_func(w):
+    return (logistic_wx(w, [1,0])-1)**2 + logistic_wx(w, [0,1])**2 + (logistic_wx(w, [1,1]) - 1)**2
+def simple_loss_gradient(w):
+    # The term in the middle should be dropped
+    w1_deriv = 2*(logistic_wx(w, [1,0]) - 1)*logistic_wx_deriv(w,[1,0])[0] + 2*(logistic_wx(w, [1,1]) - 1)*logistic_wx_deriv(w, [1,1])[0]
+    w2_deriv = 2*logistic_wx(w, [0,1])*logistic_wx_deriv(w, [0,1])[1]      + 2*(logistic_wx(w, [1,1]) - 1)*logistic_wx_deriv(w, [1,1])[1]
+    return [w1_deriv, w2_deriv]
+
+def logistic_wx_deriv(w, x):
+    # the derivative is defined as e^-w*x/(1+e^-w*x)[x1, x2] where * is dot product (w^t x)
+    constant = np.exp(-np.inner(w, x)) / (1+ np.exp(- np.inner(w,x)))**2
+    return np.multiply(constant, x)
+    
+
+def gradient_descent(num_iters = 1000, phi=0.1, print_interval=100, weights = None):
+    # The start weights should probably be random floats instead of ints
+    if not weights:
+        weights = [12*np.random.random()-6, 12*np.random.random()-6]
+    
+    for t in range(num_iters):
+        if t % print_interval-1 == 0: print("\n====================\nIteration %s, weights : %s, loss_func: %s" % (t, str(weights), simple_loss_func(weights)))
+        for i in range(len(weights)):
+            delta = -phi * simple_loss_gradient(weights)[i]
+            # We only allow weights from [-6,6]
+            if -6 < weights[i] + delta < 6: 
+                weights[i] += delta 
+    return weights
+
+
+def main():
+    learning_rates = [10**i for i in range(-2, 4)]
+    print(learning_rates)
+    results = []
+    for phi in learning_rates:
+        # Set starting weights so that we can reproduce results
+        weights = gradient_descent(num_iters= 10000, phi= phi, weights = [3, 3], print_interval=10000)
+        results.append(simple_loss_func(weights))
+    print(results)
+    plt.plot(learning_rates, results)
+    plt.xscale('log')
+    plt.ylabel('Loss func')
+    plt.xlabel('learning rate')
     plt.show()
 
-    # From the graph, we observe that the minimum of the function is about 0.25, which is for the weights
-    #  w1 = -2.13162820728e-14, w2 =  6.9 when the step size is 0.1
-    
-    
-task_1_plot()   
+main()
+
+#gradient_descent(num_iters=1000, print_interval=1000)
+
+#task_1_plot()   
